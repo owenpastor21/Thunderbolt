@@ -5,22 +5,32 @@ from mysql.connector import Error
 # Page config for wide layout
 st.set_page_config(layout="wide")
 
-# Page title in sidebar
-with st.sidebar:
-    st.title("Receipt View Retriever")
+# Page title
+st.title("Receipt View Retriever")
+
+# Create a container for the header section
+with st.container():
+    # Create two rows of inputs using columns
+    col1, col2 = st.columns(2)
     
-    # Reordered inputs
-    st.subheader("Access Details")
-    store_name = st.text_input("Store Name")
-    counter_id = st.text_input("Counter Name")
-    account = st.text_input("Account")
-    password = st.text_input("Password", type="password")
+    with col1:
+        store_name = st.text_input("Store Name")
+        counter_id = st.text_input("Counter Name")
     
-    # Create button in sidebar
-    fetch_button = st.button("Get Receipt View", use_container_width=True)
+    with col2:
+        account = st.text_input("Account")
+        password = st.text_input("Password", type="password")
+
+    # Center the button using columns
+    col1, col2, col3 = st.columns([1,1,1])
+    with col2:
+        fetch_button = st.button("Get Receipt View", use_container_width=True)
+
+# Add a separator
+st.markdown("<hr>", unsafe_allow_html=True)
 
 try:
-    # Create connection with hardcoded credentials (FOR TESTING ONLY)
+    # Create connection using secrets
     conn = mysql.connector.connect(
         host=st.secrets["mysql"]["host"],
         user=st.secrets["mysql"]["user"],
@@ -57,7 +67,7 @@ try:
                     st.markdown(f"## Total Sales: {result[1]}")
                     st.markdown("<hr>", unsafe_allow_html=True)  # Add separator line
                     
-                    # Display the receipt view in main panel with monospace font
+                    # Display the receipt view with monospace font
                     st.markdown("""
                         <style>
                         .receipt-view {
@@ -72,20 +82,16 @@ try:
                     # Using markdown with code block for monospace display
                     st.markdown(f"```\n{result[0]}\n```")
                 else:
-                    with st.sidebar:
-                        st.error("No data found for the given Store Name and Counter Name")
+                    st.error("No data found for the given Store Name and Counter Name")
             else:
-                with st.sidebar:
-                    st.error("Access denied. Manager privileges required.")
+                st.error("Access denied. Manager privileges required.")
             
             cursor.close()
         else:
-            with st.sidebar:
-                st.warning("Please fill in all fields")
+            st.warning("Please fill in all fields")
 
 except Error as e:
-    with st.sidebar:
-        st.error(f"Error connecting to MySQL: {e}")
+    st.error(f"Error connecting to MySQL: {e}")
 
 finally:
     if 'conn' in locals() and conn.is_connected():
